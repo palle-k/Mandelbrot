@@ -6,11 +6,12 @@
 //  Copyright (c) 2014 Palle Klewitz. All rights reserved.
 //
 
-#import "ViewController.h"
+#import "MandelbrotRenderViewController.h"
 #import "AppDelegate.h"
 #import "CLMandelbrotView.h"
+#import "UnifiedTitleBarWindowController.h"
 
-@interface ViewController ()
+@interface MandelbrotRenderViewController ()
 
 @property (nonatomic) BOOL magnificating;
 @property (nonatomic) BOOL panning;
@@ -18,15 +19,22 @@
 @property (nonatomic) double referenceMagnification;
 @property (nonatomic) CGPoint referencePosition;
 
+@property (nonatomic, strong) UnifiedTitleBarWindowController *animationWindow;
+
 @end
 
-@implementation ViewController
+@implementation MandelbrotRenderViewController
             
 - (void)viewDidLoad
 {
 	[super viewDidLoad];
 	AppDelegate *appDel = [NSApplication sharedApplication].delegate;
 	appDel.mainViewController = self;
+}
+
+- (void)viewDidAppear
+{
+	[_mandelbrotView setup];
 }
 
 - (void)setRepresentedObject:(id)representedObject
@@ -37,6 +45,8 @@
 
 - (IBAction)didRecognizeMagnificationGesture:(NSMagnificationGestureRecognizer *)sender
 {
+	if (_mandelbrotView.userInteractionDisabled)
+		return;
 	if (sender.state == NSGestureRecognizerStateBegan)
 	{
 		_magnificating = YES;
@@ -57,6 +67,8 @@
 
 - (IBAction)didRecognizePanGesture:(NSPanGestureRecognizer *)sender
 {
+	if (_mandelbrotView.userInteractionDisabled)
+		return;
 	if (sender.state == NSGestureRecognizerStateBegan)
 	{
 		_panning = YES;
@@ -125,6 +137,9 @@
 
 - (void)saveSnapshot:(id)sender
 {
+	NSBitmapImageRep *bitmap = [_mandelbrotView getShnapshot];
+	NSData *bitmapData = [bitmap representationUsingType:NSPNGFileType properties:[[NSDictionary alloc] init]];
+	
 	NSSavePanel *savePanel = [[NSSavePanel alloc] init];
 	savePanel.title = @"Save Snapshot";
 	savePanel.showsHiddenFiles = NO;
@@ -136,8 +151,6 @@
 	{
 		if (result == NSModalResponseOK)
 		{
-			NSBitmapImageRep *bitmap = [_mandelbrotView getShnapshot];
-			NSData *bitmapData = [bitmap representationUsingType:NSPNGFileType properties:[[NSDictionary alloc] init]];
 			if ([bitmapData writeToURL:savePanel.URL atomically:YES] == NO)
 			{
 				NSAlert *alert = [[NSAlert alloc] init];
@@ -147,6 +160,12 @@
 			}
 		}
 	}];
+}
+
+- (void)createAnimation:(id)sender
+{
+	_animationWindow = [self.storyboard instantiateControllerWithIdentifier:CreateAnimationWindow];
+	[_animationWindow showWindow:_animationWindow.window];
 }
 
 @end

@@ -180,7 +180,7 @@ kernel void mandelbrot(__write_only image2d_t output, const double sizeX, const 
 	cplx_double position = {(double)pixel.x * sizeX / (double) size.x + shiftX - sizeX * 0.5, (double)pixel.y * sizeY / (double)size.y + shiftY - sizeY * 0.5};
 	cplx_double z = position;
 	
-	float4 color = (float4)(0,0,0,0);
+	float4 color = (float4)(0,0,0,1);
 	for (uint i = 0; i < iterations; i++)
 	{
 		z = cplx_add(cplx_sqare(z), position);

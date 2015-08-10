@@ -7,8 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E64D57691B72E400006DF75A /* UnifiedTitleBarWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = E64D57681B72E400006DF75A /* UnifiedTitleBarWindowController.m */; };
+		E6AADCA31B74592B006CE608 /* CVImageUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = E6AADCA21B74592B006CE608 /* CVImageUtils.m */; };
+		E6CE1F0E1B742DEB004B5DCC /* AnimationSetupViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E6CE1F0D1B742DEB004B5DCC /* AnimationSetupViewController.m */; };
+		E6F918151B72FA8200EE5029 /* MandelbrotRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = E6F918141B72FA8200EE5029 /* MandelbrotRenderer.m */; };
 		E6FAF680199EED9A009792F6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E6FAF67F199EED9A009792F6 /* main.m */; };
-		E6FAF683199EED9A009792F6 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E6FAF682199EED9A009792F6 /* ViewController.m */; };
+		E6FAF683199EED9A009792F6 /* MandelbrotRenderViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E6FAF682199EED9A009792F6 /* MandelbrotRenderViewController.m */; };
 		E6FAF686199EED9A009792F6 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E6FAF685199EED9A009792F6 /* AppDelegate.m */; };
 		E6FAF688199EED9A009792F6 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E6FAF687199EED9A009792F6 /* Images.xcassets */; };
 		E6FAF68B199EED9A009792F6 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E6FAF689199EED9A009792F6 /* Main.storyboard */; };
@@ -33,11 +37,20 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		E64D57671B72E400006DF75A /* UnifiedTitleBarWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UnifiedTitleBarWindowController.h; sourceTree = "<group>"; };
+		E64D57681B72E400006DF75A /* UnifiedTitleBarWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UnifiedTitleBarWindowController.m; sourceTree = "<group>"; };
+		E6AADCA11B74592B006CE608 /* CVImageUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CVImageUtils.h; sourceTree = "<group>"; };
+		E6AADCA21B74592B006CE608 /* CVImageUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CVImageUtils.m; sourceTree = "<group>"; };
+		E6AADCA41B74ECBB006CE608 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Main.strings; sourceTree = "<group>"; };
+		E6CE1F0C1B742DEB004B5DCC /* AnimationSetupViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AnimationSetupViewController.h; sourceTree = "<group>"; };
+		E6CE1F0D1B742DEB004B5DCC /* AnimationSetupViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AnimationSetupViewController.m; sourceTree = "<group>"; };
+		E6F918131B72FA8200EE5029 /* MandelbrotRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MandelbrotRenderer.h; sourceTree = "<group>"; };
+		E6F918141B72FA8200EE5029 /* MandelbrotRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MandelbrotRenderer.m; sourceTree = "<group>"; };
 		E6FAF67A199EED9A009792F6 /* Mandelbrot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mandelbrot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E6FAF67E199EED9A009792F6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E6FAF67F199EED9A009792F6 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		E6FAF681199EED9A009792F6 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
-		E6FAF682199EED9A009792F6 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		E6FAF681199EED9A009792F6 /* MandelbrotRenderViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MandelbrotRenderViewController.h; sourceTree = "<group>"; };
+		E6FAF682199EED9A009792F6 /* MandelbrotRenderViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MandelbrotRenderViewController.m; sourceTree = "<group>"; };
 		E6FAF684199EED9A009792F6 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		E6FAF685199EED9A009792F6 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		E6FAF687199EED9A009792F6 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
@@ -100,14 +113,22 @@
 		E6FAF67C199EED9A009792F6 /* Mandelbrot2 */ = {
 			isa = PBXGroup;
 			children = (
+				E6AADCA11B74592B006CE608 /* CVImageUtils.h */,
+				E6AADCA21B74592B006CE608 /* CVImageUtils.m */,
 				E6FAF684199EED9A009792F6 /* AppDelegate.h */,
 				E6FAF685199EED9A009792F6 /* AppDelegate.m */,
-				E6FAF681199EED9A009792F6 /* ViewController.h */,
-				E6FAF682199EED9A009792F6 /* ViewController.m */,
+				E6FAF681199EED9A009792F6 /* MandelbrotRenderViewController.h */,
+				E6FAF682199EED9A009792F6 /* MandelbrotRenderViewController.m */,
 				E6FAF6A0199EEEAD009792F6 /* CLMandelbrotView.h */,
 				E6FAF6A1199EEEAD009792F6 /* CLMandelbrotView.m */,
+				E6F918131B72FA8200EE5029 /* MandelbrotRenderer.h */,
+				E6F918141B72FA8200EE5029 /* MandelbrotRenderer.m */,
 				E6FAF6AE199EF7B0009792F6 /* kernels.cl */,
 				E6FAF689199EED9A009792F6 /* Main.storyboard */,
+				E6CE1F0C1B742DEB004B5DCC /* AnimationSetupViewController.h */,
+				E6CE1F0D1B742DEB004B5DCC /* AnimationSetupViewController.m */,
+				E64D57671B72E400006DF75A /* UnifiedTitleBarWindowController.h */,
+				E64D57681B72E400006DF75A /* UnifiedTitleBarWindowController.m */,
 				E6FAF67D199EED9A009792F6 /* Supporting Files */,
 			);
 			path = Mandelbrot2;
@@ -197,7 +218,7 @@
 		E6FAF672199EED9A009792F6 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0600;
+				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "Palle Klewitz";
 				TargetAttributes = {
 					E6FAF679199EED9A009792F6 = {
@@ -268,11 +289,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E6FAF683199EED9A009792F6 /* ViewController.m in Sources */,
+				E6FAF683199EED9A009792F6 /* MandelbrotRenderViewController.m in Sources */,
+				E6CE1F0E1B742DEB004B5DCC /* AnimationSetupViewController.m in Sources */,
+				E6F918151B72FA8200EE5029 /* MandelbrotRenderer.m in Sources */,
+				E64D57691B72E400006DF75A /* UnifiedTitleBarWindowController.m in Sources */,
 				E6FAF6AF199EF7B0009792F6 /* kernels.cl in Sources */,
 				E6FAF680199EED9A009792F6 /* main.m in Sources */,
 				E6FAF686199EED9A009792F6 /* AppDelegate.m in Sources */,
 				E6FAF6A2199EEEAD009792F6 /* CLMandelbrotView.m in Sources */,
+				E6AADCA31B74592B006CE608 /* CVImageUtils.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -299,6 +324,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				E6FAF68A199EED9A009792F6 /* Base */,
+				E6AADCA41B74ECBB006CE608 /* de */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -326,6 +352,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -390,6 +417,7 @@
 				INFOPLIST_FILE = Mandelbrot2/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				PRODUCT_BUNDLE_IDENTIFIER = "PK.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -402,6 +430,7 @@
 				INFOPLIST_FILE = Mandelbrot2/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				PRODUCT_BUNDLE_IDENTIFIER = "PK.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -421,6 +450,7 @@
 				);
 				INFOPLIST_FILE = Mandelbrot2Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "PK.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Mandelbrot2.app/Contents/MacOS/Mandelbrot2";
 			};
@@ -437,6 +467,7 @@
 				);
 				INFOPLIST_FILE = Mandelbrot2Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "PK.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Mandelbrot2.app/Contents/MacOS/Mandelbrot2";
 			};

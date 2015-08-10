@@ -7,7 +7,7 @@
 //
 
 #import "AppDelegate.h"
-#import "ViewController.h"
+#import "MandelbrotRenderViewController.h"
 
 @interface AppDelegate ()
 
@@ -73,5 +73,27 @@
 - (IBAction)saveSnapshot:(id)sender
 {
 	[_mainViewController saveSnapshot:sender];
+}
+
+- (IBAction)createAnimation:(id)sender
+{
+	[_mainViewController createAnimation:sender];
+}
+
+- (IBAction)showRenderView:(id)sender
+{
+	if (_mainViewController)
+	{
+		[_mainViewController.view.window makeKeyWindow];
+	}
+	else
+	{
+		
+	}
+}
+
+- (IBAction)showControlPanel:(id)sender
+{
+	
 }
 @end

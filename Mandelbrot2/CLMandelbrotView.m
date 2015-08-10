@@ -11,6 +11,8 @@
 
 @implementation CLMandelbrotView
 
+@synthesize progress = _progress;
+
 #pragma mark - Tiling
 
 /*
@@ -30,12 +32,10 @@
 
 cl_int2 NthTilePosition(unsigned int n, int tilesX, int tilesY)
 {
-	//NSLog(@"%u. Tile, tilesX: %");
-	
 	n = tilesX * tilesY - 1 - n;
 	
 	cl_int2 tilePosition;
-	
+	/*
 	int x = 0;
 	int y = 0;
 	
@@ -65,15 +65,11 @@ cl_int2 NthTilePosition(unsigned int n, int tilesX, int tilesY)
 		}
 	}
 	
-	//NSLog(@"%i; %i", x, y);
-	
 	tilePosition.x = MAX(MIN(x + tilesX / 2 - 1, tilesX - 1), 0);
 	tilePosition.y = MAX(MIN(y + tilesY / 2 - 1, tilesY - 1), 0);
-	
-	//NSLog(@"%i; %i", tilePosition.x, tilePosition.y);
-	
-	//tilePosition.x = n % tilesX;
-	//tilePosition.y = n / tilesX;
+	*/
+	tilePosition.x = n % tilesX;
+	tilePosition.y = n / tilesX;
 	return tilePosition;
 }
 
@@ -81,34 +77,46 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 {
 	cl_int2 tilePosition;
 	
-	int x = tilesX / 2;
-	int y = tilesY / 2;
+	int centerX = tilesX / 2;
+	int centerY = tilesY / 2;
 	
-	int dx = 1;
-	int dy = 0;
+	int dx = 0;
+	int dy = -1;
 	
-	for (unsigned int i = 0; i < n;)
+	int maxR = MAX(tilesX, tilesY) / 2;
+	int i = 0;
+	
+	for (int r = 0; r < maxR; r++)
 	{
-		if (x >= 0 && x < tilesX && y >= 0 & y < tilesY)
+		int stepX = r;
+		int stepY = r;
+		int maxSteps = MAX((r*2+1)*2+(r*2-1)*2, 1);
+		for (int step = 0; step < maxSteps; step++)
 		{
-			i++;
+			if ((stepX + centerX >= 0 && stepX + centerX < tilesX) &&  (stepY + centerY >= 0 && stepY + centerY < tilesY))
+			{
+				if (i == n)
+				{
+					r = maxR;
+					step = maxSteps;
+					tilePosition.x = stepX + centerX;
+					tilePosition.y = stepY + centerY;
+					break;
+				}
+				i++;
+			}
+			stepX += dx;
+			stepY += dy;
+			
+			if (stepX == -stepY || stepX == stepY)
+			{
+				int c = dx;
+				dx = dy;
+				dy = -c;
+			}
+			
 		}
-		if ((x - tilesX / 2) == (y - tilesY / 2) || (x - tilesX / 2) == -(y - tilesY / 2))
-		{
-			int cache = dx;
-			dx = -dy;
-			dy = cache;
-		}
-		if (y == 0 && x < tilesX / 2)
-		{
-			x -= 1;
-		}
-		x+= dx;
-		y+= dy;
 	}
-	
-	tilePosition.x = x;
-	tilePosition.y = y;
 	
 	return tilePosition;
 }
@@ -120,12 +128,7 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	self = [super initWithCoder:coder];
 	if (self)
 	{
-		[self initParameters];
-		[self initCL];
-		[self initMainTexture];
-		[self initPreviewTextureWithFactor:16];
-		[self update];
-		[self.window makeFirstResponder:self];
+		
 	}
 	return self;
 }
@@ -135,38 +138,46 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	self = [super initWithFrame:frameRect];
 	if (self)
 	{
-		[self initParameters];
-		[self initCL];
-		[self initMainTexture];
-		[self initPreviewTextureWithFactor:16];
-		[self update];
-		[self.window makeFirstResponder:self];
+		
 	}
 	return self;
+}
+
+- (void) setup
+{
+	[self initParameters];
+	[self initCL];
+	[self initMainTexture];
+	[self initPreviewTextureWithFactor:16];
+	if (!_disableAutomaticUpdates)
+		[self updateCL];
 }
 
 - (void) initParameters
 {
 	zoom = 1;
 	previewZoom = 1;
-	shift.x = 0;
+	shift.x = -0.5;
 	shift.y = 0;
-	iterations = 128;
+	iterations = 256;
 	color_shift = 2;
-	color_factor = 1000;
+	color_factor = 16;
 	renderID = 0;
+	devicePixelRatio = [self.window.screen backingScaleFactor];
+	_progress = [[NSProgress alloc] init];
 }
 
 - (void) initCL
 {
 	if(initialized)
 		return;
-	width = self.frame.size.width * [[NSScreen mainScreen] backingScaleFactor] * 2;
-	height = self.frame.size.height * [[NSScreen mainScreen] backingScaleFactor] * 2;
+	width = self.frame.size.width * devicePixelRatio * 2;
+	height = self.frame.size.height * devicePixelRatio * 2;
 	usePreview = NO;
 	
 	[self.openGLContext makeCurrentContext];
 	gcl_gl_set_sharegroup(CGLGetShareGroup(CGLGetCurrentContext()));
+	
 	cl_queue = gcl_create_dispatch_queue(CL_DEVICE_TYPE_GPU, 0);
 	cl_block = dispatch_semaphore_create(0);
 	
@@ -174,7 +185,7 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_2D);
 	glMatrixMode(GL_PROJECTION);
-	glViewport(0, 0, self.bounds.size.width * [[NSScreen mainScreen] backingScaleFactor], self.bounds.size.height * [[NSScreen mainScreen] backingScaleFactor]);
+	glViewport(0, 0, self.bounds.size.width * devicePixelRatio, self.bounds.size.height * devicePixelRatio);
 	glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	
 	initialized = YES;
@@ -184,42 +195,39 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 
 - (void) initMainTexture
 {
-	const float zero = 0;
-	float *mainPixels = (float*) malloc(sizeof(float) * 4 * width * height);
-	vDSP_vfill(&zero, mainPixels, 1, 4 * width * height);
 	glGenTextures(1, &mainTexture);
 	glBindTexture(GL_TEXTURE_2D, mainTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
-	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGBA, GL_FLOAT, mainPixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	mainImage = gcl_gl_create_image_from_texture(GL_TEXTURE_2D, 0, mainTexture);
-	free(mainPixels);
 	mainTextureAvailable = YES;
 	
 }
 
 - (void) initPreviewTextureWithFactor: (int) downscaling
 {
-	downscaling *= [[NSScreen mainScreen] backingScaleFactor];
+	downscaling *= devicePixelRatio;
 	previewWidth = width / downscaling;
 	previewHeight = height / downscaling;
-	const float zero = 0;
-	float *previewPixels = (float*) malloc(sizeof(float) * 4 * previewWidth * previewHeight);
-	vDSP_vfill(&zero, previewPixels, 1, 4 * previewWidth * previewHeight);
 	glGenTextures(1, &previewTexture);
 	glBindTexture(GL_TEXTURE_2D, previewTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, 4, previewWidth, previewHeight, 0, GL_RGBA, GL_FLOAT, previewPixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, previewWidth, previewHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	previewImage = gcl_gl_create_image_from_texture(GL_TEXTURE_2D, 0, previewTexture);
-	free(previewPixels);
 	previewTextureAvailable = YES;
 }
 
 #pragma mark Teardown
+
+- (void) dealloc
+{
+	[self teardown];
+}
 
 - (void) teardown
 {
@@ -234,39 +242,70 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 
 #pragma mark - Rendering
 
-- (void) update
+- (void) updateCL
 {
 	updating = YES;
-	__block double sizeX = 2.0 / zoom * width / height;
-	__block double sizeY = 2.0 / zoom;
 	
 	if(!mainTextureAvailable)
 		usePreview = YES;
 	if(usePreview && !previewTextureAvailable)
 		return;
 	
-	if (usePreview)
-	{
+	dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0),
+	^{
+		double sizeX = 2.0 / zoom * width / height;
+		double sizeY = 2.0 / zoom;
+		
 		dispatch_async(cl_queue,
 		^{
-			cl_ndrange range =
-			{
-				2,
-				{0,0},
-				{previewWidth, previewHeight},
-				{0, 0}
+		   cl_ndrange range =
+		   {
+			   2,
+			   {0,0},
+			   {previewWidth, previewHeight},
+			   {0, 0}
 			};
 			mandelbrot_kernel(&range, previewImage, sizeX, sizeY, previewWidth, previewHeight, shift.x, shift.y, iterations, color_factor, color_shift);
 			dispatch_semaphore_signal(cl_block);
 		});
 		dispatch_semaphore_wait(cl_block, DISPATCH_TIME_FOREVER);
-		[self drawRect:self.frame];
-		updating = NO;
-	}
-	else
-	{
-		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
-		^{
+		dispatch_sync(dispatch_get_main_queue(),
+	    ^{
+			[self drawRect:self.frame];
+	    });
+		if (usePreview)
+			updating = NO;
+		
+		if (!usePreview)
+		{
+			int baseTiles = 5;
+			if(iterations >= 32768)
+				baseTiles = 60;
+			else if(iterations >= 8192)
+				baseTiles = 30;
+			else if (iterations >= 4096)
+				baseTiles = 20;
+			else if (iterations >= 256)
+				baseTiles = 10;
+			
+			if (_optimizeSpeed)
+			{
+				baseTiles = 3;
+				if(iterations >= 32768)
+					baseTiles = 30;
+				else if(iterations >= 8192)
+					baseTiles = 20;
+				else if (iterations >= 4096)
+					baseTiles = 15;
+				else if (iterations >= 256)
+					baseTiles = 8;
+			}
+			
+			int tilesX = (int)((double) baseTiles * width / height);
+			int tilesY = baseTiles;
+			
+			dispatch_sync(dispatch_get_main_queue(), ^{_progress.totalUnitCount = tilesX * tilesY;_progress.completedUnitCount = 0;});
+			
 			dispatch_async(cl_queue,
 			^{
 				cl_ndrange range =
@@ -281,16 +320,9 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 			});
 			dispatch_semaphore_wait(cl_block, DISPATCH_TIME_FOREVER);
 			
+			mainTextureInvalid = NO;
 			renderID++;
 			int currentRenderID = renderID;
-			
-			int baseTiles = 8;
-			if(iterations >= 8192)
-				baseTiles = 32;
-			else if(iterations >= 4096)
-				baseTiles = 16;
-			int tilesX = (int)((double) baseTiles * width / height);
-			int tilesY = baseTiles;
 			for (short i = tilesY - 1; i >= 0; i--)
 			{
 				if(usePreview || renderID != currentRenderID)
@@ -320,14 +352,23 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 					
 					dispatch_sync(dispatch_get_main_queue(),
 					^{
+						_progress.completedUnitCount++;
+						//NSLog(@"Progress: %@; %@", _progress.localizedDescription, _progress.localizedAdditionalDescription);
 						[self drawRect:self.frame];
 					});
 				}
 			}
-			updating = NO;
-		});
-		
-	}
+			dispatch_sync(dispatch_get_main_queue(), ^{_progress.completedUnitCount = _progress.totalUnitCount;});
+			if (renderID == currentRenderID)
+				updating = NO;
+			dispatch_sync(dispatch_get_main_queue(),
+			^{
+				[self drawRect:self.frame];
+			});
+			if (renderID == currentRenderID)
+				[self.delegate mandelbrotViewDidFinishRendering:self];
+		}
+	});
 }
 
 - (void)drawRect:(NSRect)dirtyRect
@@ -338,37 +379,80 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	if(!initialized)
 		return;
 	glMatrixMode(GL_MODELVIEW);
-	if(usePreview)
+	
+	if (updating || usePreview)
 	{
 		glBindTexture(GL_TEXTURE_2D, previewTexture);
-	}
-	else
-	{
-		glBindTexture(GL_TEXTURE_2D, mainTexture);
-		glGenerateMipmap(GL_TEXTURE_2D);
+		glBegin(GL_QUADS);
+		{
+			glTexCoord2d(0.0f, 0.0f);
+			glVertex2f(-1.0f, -1.0f);
+			
+			glTexCoord2d(1.0f, 0.0f);
+			glVertex2f(1.0f, -1.0f);
+			
+			glTexCoord2d(1.0f, 1.0f);
+			glVertex2f(1.0f, 1.0f);
+			
+			glTexCoord2d(0.0f, 1.0f);
+			glVertex2f(-1.0f, 1.0f);
+		}
+		glEnd();
 	}
 	
-	glBegin(GL_QUADS);
+	glBindTexture(GL_TEXTURE_2D, mainTexture);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	
+	if (usePreview && !mainTextureInvalid)
 	{
-		glTexCoord2d(0.0f, 0.0f);
-		glVertex2f(-1.0f, -1.0f);
-		
-		glTexCoord2d(1.0f, 0.0f);
-		glVertex2f(1.0f, -1.0f);
-		
-		glTexCoord2d(1.0f, 1.0f);
-		glVertex2f(1.0f, 1.0f);
-		
-		glTexCoord2d(0.0f, 1.0f);
-		glVertex2f(-1.0f, 1.0f);
+		double relativeZoom = zoom / previewZoom;
+
+		if (relativeZoom < 32)
+		{
+			double relativeShiftX = (shift.x - previewShift.x) * zoom * height / width;
+			double relativeShiftY = (shift.y - previewShift.y) * zoom;
+			
+			glBegin(GL_QUADS);
+			{
+				glTexCoord2d(0.0f, 0.0f);
+				glVertex2f(-1.0f * relativeZoom - relativeShiftX, -1.0f * relativeZoom - relativeShiftY);
+				
+				glTexCoord2d(1.0f, 0.0f);
+				glVertex2f(1.0f * relativeZoom - relativeShiftX, -1.0f * relativeZoom - relativeShiftY);
+				
+				glTexCoord2d(1.0f, 1.0f);
+				glVertex2f(1.0f * relativeZoom - relativeShiftX, 1.0f * relativeZoom - relativeShiftY);
+				
+				glTexCoord2d(0.0f, 1.0f);
+				glVertex2f(-1.0f * relativeZoom - relativeShiftX, 1.0f * relativeZoom - relativeShiftY);
+			}
+			glEnd();
+		}
 	}
-	glEnd();
+	else if (!usePreview)
+	{
+		glBegin(GL_QUADS);
+		{
+			glTexCoord2d(0.0f, 0.0f);
+			glVertex2f(-1.0f, -1.0f);
+			
+			glTexCoord2d(1.0f, 0.0f);
+			glVertex2f(1.0f, -1.0f);
+			
+			glTexCoord2d(1.0f, 1.0f);
+			glVertex2f(1.0f, 1.0f);
+			
+			glTexCoord2d(0.0f, 1.0f);
+			glVertex2f(-1.0f, 1.0f);
+		}
+		glEnd();
+	}
 	
 	if (usePreview)
 	{
 		glDisable(GL_TEXTURE_2D);
 		glColor4f(1, 1, 1, 1);
-		glLineWidth(1 / [[NSScreen mainScreen] backingScaleFactor]);
+		glLineWidth(1 / devicePixelRatio);
 		glBegin(GL_LINES);
 		{
 			glVertex2f(-1.0, 0.0);
@@ -389,7 +473,12 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 - (void)reshape
 {
 	[super reshape];
+	
+	if (width == self.frame.size.width * devicePixelRatio && height == self.frame.size.height * devicePixelRatio)
+		return;
+	
 	[self teardown];
+	devicePixelRatio = [self.window.screen backingScaleFactor];
 	lastChangeTime = CACurrentMediaTime();
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
 	^{
@@ -404,10 +493,11 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 				[self initPreviewTextureWithFactor:16];
 				[self initMainTexture];
 				glMatrixMode(GL_PROJECTION);
-				glViewport(0, 0, self.bounds.size.width * [[NSScreen mainScreen] backingScaleFactor], self.bounds.size.height * [[NSScreen mainScreen] backingScaleFactor]);
+				glViewport(0, 0, self.bounds.size.width * devicePixelRatio, self.bounds.size.height * devicePixelRatio);
 				glOrtho(-1, 1, -1, 1, -1, 1);
 				usePreview = NO;
-				[self update];
+				if (!_disableAutomaticUpdates)
+					[self updateCL];
 			});
 		}
 	});
@@ -427,7 +517,7 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	lastChangeTime = CACurrentMediaTime();
 	if(!updating)
 	{
-		[self update];
+		[self updateCL];
 	}
 }
 
@@ -436,36 +526,10 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	mouseDown = NO;
 	if(!scrolling)
 		usePreview = NO;
-	[self update];
+	[self updateCL];
 }
 */
-- (void)keyUp:(NSEvent *)theEvent
-{
-	if (theEvent.keyCode == 30)
-		iterations *= 2;
-	else if (theEvent.keyCode == 44)
-		iterations /= 2;
-	else if (theEvent.keyCode == 7)
-		color_factor /= 2;
-	else if (theEvent.keyCode == 8)
-		color_factor *= 2;
-	else if (theEvent.keyCode == 9)
-		color_shift -= 0.5f;
-	else if (theEvent.keyCode == 11)
-		color_shift += 0.5f;
-	NSLog(@"iterations: %i, color factor: %f", iterations, color_factor);
-	if(iterations >= 8192 && width / previewWidth <= 16 * [NSScreen mainScreen].backingScaleFactor)
-	{
-		glDeleteTextures(1, &previewTexture);
-		[self initPreviewTextureWithFactor:20];
-	}
-	else if (iterations < 8192 && width / previewWidth > 16 * [NSScreen mainScreen].backingScaleFactor)
-	{
-		glDeleteTextures(1, &previewTexture);
-		[self initPreviewTextureWithFactor:16];
-	}
-	[self update];
-}
+
 /*
 - (void)scrollWheel:(NSEvent *)theEvent
 {
@@ -479,7 +543,7 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 		if(!mouseDown)
 			usePreview = NO;
 	}
-	[self update];
+	[self updateCL];
 }
 */
 
@@ -488,7 +552,11 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 - (void)usePreviewMode:(BOOL)enable
 {
 	usePreview = enable;
-	[self update];
+	previewZoom = zoom;
+	previewShift.x = shift.x;
+	previewShift.y = shift.y;
+	if (!_disableAutomaticUpdates)
+		[self updateCL];
 }
 
 - (double)zoom
@@ -499,16 +567,16 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 - (void)setZoom:(double)newZoom
 {
 	zoom = newZoom;
-	if(!updating)
-		[self update];
+	if(!updating && _disableAutomaticUpdates)
+		[self updateCL];
 }
 
 - (void)shiftBy:(CGVector) pixels
 {
 	shift.x -= pixels.dx / self.bounds.size.height * 2.0 / zoom;
 	shift.y -= pixels.dy / self.bounds.size.height * 2.0 / zoom;
-	if(!updating)
-		[self update];
+	if(!updating && !_disableAutomaticUpdates)
+		[self updateCL];
 }
 
 - (unsigned int)iterations
@@ -519,17 +587,19 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 - (void)setIterations:(unsigned int)newIterations
 {
 	iterations = newIterations;
-	if(iterations >= 8192 && width / previewWidth <= 16 * [NSScreen mainScreen].backingScaleFactor)
+	if(iterations >= 8192 && width / previewWidth <= 16 * devicePixelRatio)
 	{
 		glDeleteTextures(1, &previewTexture);
-		[self initPreviewTextureWithFactor:20];
+		[self initPreviewTextureWithFactor:24];
 	}
-	else if (iterations < 8192 && width / previewWidth > 16 * [NSScreen mainScreen].backingScaleFactor)
+	else if (iterations < 8192 && width / previewWidth > 16 * devicePixelRatio)
 	{
 		glDeleteTextures(1, &previewTexture);
 		[self initPreviewTextureWithFactor:16];
 	}
-	[self update];
+	mainTextureInvalid = YES;
+	if (!_disableAutomaticUpdates)
+		[self updateCL];
 }
 
 - (double)color_shift
@@ -540,7 +610,9 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 - (void)setColor_shift:(double)new_color_shift
 {
 	color_shift = new_color_shift;
-	[self update];
+	mainTextureInvalid = YES;
+	if (!_disableAutomaticUpdates)
+		[self updateCL];
 }
 
 - (double)color_factor
@@ -551,21 +623,22 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 - (void)setColor_factor:(double)new_color_factor
 {
 	color_factor = new_color_factor;
-	[self update];
+	mainTextureInvalid = YES;
+	if (!_disableAutomaticUpdates)
+		[self updateCL];
 }
 
 #pragma mark - Snapshotting
 
-- (GLfloat *)getSnapshot:(size_t *)length
+- (GLubyte *)getSnapshot:(size_t *)length
 {
 	[self.openGLContext makeCurrentContext];
 	glBindTexture(GL_TEXTURE_2D, mainTexture);
 	
-	GLint textureWidth, textureHeight;
-	*length = textureWidth * textureHeight * 4 * sizeof(GLfloat);
+	*length = width * height * 4;
 	
-	GLfloat *buffer = (GLfloat *) malloc(textureWidth * textureHeight * 4 * sizeof(GLfloat));
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, buffer);
+	GLubyte *buffer = (GLubyte *) malloc(width * height * 4);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 	
 	return buffer;
 }
@@ -573,13 +646,31 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 - (NSBitmapImageRep *)getShnapshot
 {
 	size_t bitmap_size;
-	GLfloat *snapshotData = [self getSnapshot:&bitmap_size];
+	GLubyte *snapshotData = [self getSnapshot:&bitmap_size];
 	
-	NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL pixelsWide:width pixelsHigh:height bitsPerSample:32 samplesPerPixel:4 hasAlpha:YES isPlanar:NO colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:width * 4 * 4 bitsPerPixel:128];
+	NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&snapshotData pixelsWide:width pixelsHigh:height bitsPerSample:8 samplesPerPixel:4 hasAlpha:YES isPlanar:NO colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:width * 4 bitsPerPixel:32];
 	
 	free(snapshotData);
 	
 	return bitmap;
+}
+
+- (CGSize)textureSize
+{
+	return CGSizeMake(width, height);
+}
+
+- (cl_double2)shift
+{
+	NSLog(@"shift: x: %f; y: %f", shift.x, shift.y);
+	return shift;
+}
+
+- (void)setShift:(cl_double2)newShift
+{
+	shift = newShift;
+	if (!_disableAutomaticUpdates)
+		[self updateCL];
 }
 
 @end

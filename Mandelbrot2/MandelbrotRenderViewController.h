@@ -8,7 +8,7 @@
 @import Cocoa;
 @class CLMandelbrotView;
 
-@interface ViewController : NSViewController
+@interface MandelbrotRenderViewController : NSViewController
 
 @property (weak) IBOutlet CLMandelbrotView *mandelbrotView;
 
@@ -29,6 +29,7 @@
 - (void)decreaseColorShift:(id)sender;
 
 - (void)saveSnapshot:(id)sender;
+- (void)createAnimation:(id)sender;
 
 @end
 

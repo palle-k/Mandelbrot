@@ -7,11 +7,14 @@
 //
 
 @import Cocoa;
-@class ViewController;
+@class MandelbrotRenderViewController;
+
+#define CreateAnimationWindow @"CreateAnimationWindow"
+#define MandelbrotRenderWindow @"MandelbrotRenderWindow"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
-@property (nonatomic, weak) ViewController *mainViewController;
+@property (nonatomic, weak) MandelbrotRenderViewController *mainViewController;
 
 - (IBAction)resetZoom:(id)sender;
 - (IBAction)zoomIn:(id)sender;
@@ -27,6 +30,9 @@
 - (IBAction)decreaseColorShift:(id)sender;
 
 - (IBAction)saveSnapshot:(id)sender;
+- (IBAction)createAnimation:(id)sender;
 
+- (IBAction)showRenderView:(id)sender;
+- (IBAction)showControlPanel:(id)sender;
 @end
 

@@ -11,11 +11,18 @@
 #import <OpenCL/cl.h>
 #import <OpenGL/gl.h>
 #import <OpenGL/glu.h>
-#import <Accelerate/Accelerate.h>
 #import <QuartzCore/QuartzCore.h>
 #import <CoreGraphics/CoreGraphics.h>
 
-@interface CLMandelbrotView : NSOpenGLView
+@class CLMandelbrotView;
+
+@protocol CLMandelbrotViewDelegate <NSObject>
+
+- (void) mandelbrotViewDidFinishRendering:(nonnull CLMandelbrotView *) mandelbrotView;
+
+@end
+
+@interface CLMandelbrotView : NSOpenGLView <NSProgressReporting>
 {
 	unsigned int width;
 	unsigned int height;
@@ -31,6 +38,8 @@
 	cl_double2 shift;
 	cl_double2 previewShift;
 	
+	double devicePixelRatio;
+	
 	dispatch_queue_t cl_queue;
 	dispatch_semaphore_t cl_block;
 	
@@ -45,6 +54,7 @@
 	BOOL initialized;
 	BOOL updating;
 	BOOL mainTextureAvailable;
+	BOOL mainTextureInvalid;
 	BOOL previewTextureAvailable;
 	
 	double lastChangeTime;
@@ -54,12 +64,21 @@
 
 - (void) usePreviewMode: (BOOL) enable;
 - (void) shiftBy: (CGVector) pixels;
-- (GLfloat *) getSnapshot:(size_t *) length;
-- (NSBitmapImageRep *) getShnapshot;
+- (GLubyte * __nullable) getSnapshot:( size_t * _Null_unspecified) length;
+- (NSBitmapImageRep * _Nullable) getShnapshot;
+- (void) setup;
+- (void) updateCL;
 
+@property (nonatomic, readwrite) BOOL disableAutomaticUpdates;
+@property (nonatomic, readwrite) BOOL userInteractionDisabled;
+@property (nonatomic, readwrite) BOOL optimizeSpeed;
+
+@property (nonatomic, readonly) CGSize textureSize;
+@property (nonatomic, readwrite) cl_double2 shift;
 @property (nonatomic, readwrite) double zoom;
 @property (nonatomic, readwrite) unsigned int iterations;
 @property (nonatomic, readwrite) double color_shift;
 @property (nonatomic, readwrite) double color_factor;
+@property (weak, nonatomic, readwrite, nullable) id<CLMandelbrotViewDelegate> delegate;
 
 @end
