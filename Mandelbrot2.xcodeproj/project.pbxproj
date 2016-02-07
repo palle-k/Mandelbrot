@@ -32,6 +32,7 @@
 		E64D6C891B7972C300FBA7B2 /* MandelbrotControlPanelViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MandelbrotControlPanelViewController.m; sourceTree = "<group>"; };
 		E656B76C1C67BCB100E39A99 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Main.strings; sourceTree = "<group>"; };
 		E656B76D1C67C13400E39A99 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = SOURCE_ROOT; };
+		E656B76E1C67C2C300E39A99 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		E6AADCA41B74ECBB006CE608 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Main.strings; sourceTree = "<group>"; };
 		E6CE1F0C1B742DEB004B5DCC /* AnimationSetupViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AnimationSetupViewController.h; sourceTree = "<group>"; };
 		E6CE1F0D1B742DEB004B5DCC /* AnimationSetupViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AnimationSetupViewController.m; sourceTree = "<group>"; };
@@ -75,6 +76,7 @@
 		E6FAF671199EED9A009792F6 = {
 			isa = PBXGroup;
 			children = (
+				E656B76E1C67C2C300E39A99 /* README.md */,
 				E656B76D1C67C13400E39A99 /* .gitignore */,
 				E6FAF67C199EED9A009792F6 /* Mandelbrot */,
 				E6FAF6AB199EF000009792F6 /* Frameworks */,
