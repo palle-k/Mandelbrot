@@ -3,7 +3,24 @@
 //  Mandelbrot2
 //
 //  Created by Palle Klewitz on 16.08.14.
-//  Copyright (c) 2014 Palle Klewitz. All rights reserved.
+//  Copyright (c) 2014 - 2016 Palle Klewitz.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is furnished
+//  to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in all
+//  copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+//  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+//  IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 #import "CLMandelbrotView.h"
@@ -15,59 +32,11 @@
 
 #pragma mark - Tiling
 
-/*
- def spiral(X, Y):
-     x = y = 0
-     dx = 0
-     dy = -1
-     for i in range(max(X, Y)**2):
-         if (-X/2 < x <= X/2) and (-Y/2 < y <= Y/2):
-             print (x, y)
-             # DO STUFF...
-         if x == y or (x < 0 and x == -y) or (x > 0 and x == 1-y):
-         dx, dy = -dy, dx
-         x, y = x+dx, y+dy
- */
-
 
 cl_int2 NthTilePosition(unsigned int n, int tilesX, int tilesY)
 {
 	n = tilesX * tilesY - 1 - n;
-	
 	cl_int2 tilePosition;
-	/*
-	int x = 0;
-	int y = 0;
-	
-	int dx = 0;
-	int dy = -1;
-	
-	//int maxSQ = (int)MAX(tilesX, tilesY) * (int)MAX(tilesX, tilesY);
-	
-	//int tileNum = 0;
-	
-	for (unsigned int i = 0; i < n;)
-	{
-		if (-tilesX/2 < x && x <= tilesX/2 && -tilesY/2 < y && y <= tilesY/2)
-		{
-			i++;
-		}
-		if (x == y || (x < 0 && x == -y) || (x > 0 && x == 1-y))
-		{
-			int cache = dx;
-			dx = -dy;
-			dy = cache;
-		}
-		if (i < n)
-		{
-			x += dx;
-			y += dy;
-		}
-	}
-	
-	tilePosition.x = MAX(MIN(x + tilesX / 2 - 1, tilesX - 1), 0);
-	tilePosition.y = MAX(MIN(y + tilesY / 2 - 1, tilesY - 1), 0);
-	*/
 	tilePosition.x = n % tilesX;
 	tilePosition.y = n / tilesX;
 	return tilePosition;
@@ -75,7 +44,7 @@ cl_int2 NthTilePosition(unsigned int n, int tilesX, int tilesY)
 
 cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 {
-	cl_int2 tilePosition;
+	cl_int2 tilePosition = { .x = 0, .y = 0 };
 	
 	int centerX = tilesX / 2;
 	int centerY = tilesY / 2;
@@ -163,6 +132,8 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	color_shift = 2;
 	color_factor = 16;
 	renderID = 0;
+	smooth_coloring = 0;
+	color_scale = 0;
 	devicePixelRatio = [self.window.screen backingScaleFactor];
 	_progress = [[NSProgress alloc] init];
 }
@@ -251,35 +222,48 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	if(usePreview && !previewTextureAvailable)
 		return;
 	
+	[self.progressDelegate mandelbrotViewDidChangeSetup:self];
+	
 	dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0),
 	^{
 		double sizeX = 2.0 / zoom * width / height;
 		double sizeY = 2.0 / zoom;
 		
-		dispatch_async(cl_queue,
-		^{
-		   cl_ndrange range =
-		   {
-			   2,
-			   {0,0},
-			   {previewWidth, previewHeight},
-			   {0, 0}
-			};
-			mandelbrot_kernel(&range, previewImage, sizeX, sizeY, previewWidth, previewHeight, shift.x, shift.y, iterations, color_factor, color_shift);
-			dispatch_semaphore_signal(cl_block);
-		});
-		dispatch_semaphore_wait(cl_block, DISPATCH_TIME_FOREVER);
-		dispatch_sync(dispatch_get_main_queue(),
-	    ^{
-			[self drawRect:self.frame];
-	    });
-		if (usePreview)
-			updating = NO;
+		if (iterations <= 131072)
+		{
+			dispatch_async(cl_queue,
+						   ^{
+							   cl_ndrange range =
+							   {
+								   2,
+								   {0,0},
+								   {previewWidth, previewHeight},
+								   {0, 0}
+							   };
+							   mandelbrot_kernel(&range, previewImage, sizeX, sizeY, previewWidth, previewHeight, shift.x, shift.y, iterations, color_factor, color_shift, color_mode, smooth_coloring, color_scale);
+							   dispatch_semaphore_signal(cl_block);
+						   });
+			dispatch_semaphore_wait(cl_block, DISPATCH_TIME_FOREVER);
+			dispatch_sync(dispatch_get_main_queue(),
+						  ^{
+							  [self drawRect:self.frame];
+						  });
+			if (usePreview)
+				updating = NO;
+		}
 		
 		if (!usePreview)
 		{
 			int baseTiles = 5;
-			if(iterations >= 32768)
+			if(iterations >= 4194304)
+				baseTiles = 240;
+			else if(iterations >= 1048576)
+				baseTiles = 150;
+			else if(iterations >= 524288)
+				baseTiles = 120;
+			else if(iterations >= 131072)
+				baseTiles = 90;
+			else if(iterations >= 32768)
 				baseTiles = 60;
 			else if(iterations >= 8192)
 				baseTiles = 30;
@@ -291,22 +275,35 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 			if (_optimizeSpeed)
 			{
 				baseTiles = 3;
-				if(iterations >= 32768)
+				if(iterations >= 4194304)
+					baseTiles = 150;
+				else if(iterations >= 1048576)
+					baseTiles = 90;
+				else if(iterations >= 524288)
+					baseTiles = 60;
+				else if(iterations >= 131072)
 					baseTiles = 30;
-				else if(iterations >= 8192)
+				else if(iterations >= 32768)
 					baseTiles = 20;
-				else if (iterations >= 4096)
+				else if(iterations >= 8192)
 					baseTiles = 15;
+				else if (iterations >= 4096)
+					baseTiles = 10;
 				else if (iterations >= 256)
-					baseTiles = 8;
+					baseTiles = 5;
 			}
 			
 			int tilesX = (int)((double) baseTiles * width / height);
 			int tilesY = baseTiles;
 			
-			dispatch_sync(dispatch_get_main_queue(), ^{_progress.totalUnitCount = tilesX * tilesY;_progress.completedUnitCount = 0;});
+			dispatch_sync(dispatch_get_main_queue(),
+			^{
+				_progress = [[NSProgress alloc] init];
+				_progress.totalUnitCount = tilesX * tilesY;
+				_progress.completedUnitCount = 0;
+			});
 			
-			dispatch_async(cl_queue,
+			dispatch_sync(cl_queue,
 			^{
 				cl_ndrange range =
 				{
@@ -316,9 +313,9 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 					{0, 0}
 				};
 				reset_kernel(&range, mainImage);
-				dispatch_semaphore_signal(cl_block);
+				//dispatch_semaphore_signal(cl_block);
 			});
-			dispatch_semaphore_wait(cl_block, DISPATCH_TIME_FOREVER);
+			//dispatch_semaphore_wait(cl_block, DISPATCH_TIME_FOREVER);
 			
 			mainTextureInvalid = NO;
 			renderID++;
@@ -334,7 +331,7 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 					
 					cl_int2 tilePosition = NthTilePosition(j + i * tilesX, tilesX, tilesY);
 					
-					dispatch_async(cl_queue,
+					dispatch_sync(cl_queue,
 					^{
 						size_t wgs;
 						gcl_get_kernel_block_workgroup_info((__bridge void *)(mandelbrot_kernel), CL_KERNEL_WORK_GROUP_SIZE, sizeof(wgs), &wgs, NULL);
@@ -345,16 +342,16 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 							{width / tilesX, height / tilesY},
 							{0, 0}
 						};
-						mandelbrot_kernel(&range, mainImage, sizeX, sizeY, width, height, shift.x, shift.y, iterations, color_factor, color_shift);
-						dispatch_semaphore_signal(cl_block);
+						mandelbrot_kernel(&range, mainImage, sizeX, sizeY, width, height, shift.x, shift.y, iterations, color_factor, color_shift, color_mode, smooth_coloring, color_scale);
+						//dispatch_semaphore_signal(cl_block);
 					});
-					dispatch_semaphore_wait(cl_block, DISPATCH_TIME_FOREVER);
+					//dispatch_semaphore_wait(cl_block, DISPATCH_TIME_FOREVER);
 					
 					dispatch_sync(dispatch_get_main_queue(),
 					^{
 						_progress.completedUnitCount++;
-						//NSLog(@"Progress: %@; %@", _progress.localizedDescription, _progress.localizedAdditionalDescription);
-						[self drawRect:self.frame];
+						[_progressDelegate mandelbrotView:self didUpdateProgress:_progress];
+						[self drawRect:self.bounds];
 					});
 				}
 			}
@@ -363,6 +360,11 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 				updating = NO;
 			dispatch_sync(dispatch_get_main_queue(),
 			^{
+				if (renderID == currentRenderID)
+				{
+					_progress.completedUnitCount = _progress.totalUnitCount;
+					[_progressDelegate mandelbrotView:self didUpdateProgress:_progress];
+				}
 				[self drawRect:self.frame];
 			});
 			if (renderID == currentRenderID)
@@ -409,22 +411,22 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 
 		if (relativeZoom < 32)
 		{
-			double relativeShiftX = (shift.x - previewShift.x) * zoom * height / width;
-			double relativeShiftY = (shift.y - previewShift.y) * zoom;
+			double relativeShiftX = (previewShift.x - shift.x) * zoom * height / width;
+			double relativeShiftY = (previewShift.y - shift.y) * zoom;
 			
 			glBegin(GL_QUADS);
 			{
 				glTexCoord2d(0.0f, 0.0f);
-				glVertex2f(-1.0f * relativeZoom - relativeShiftX, -1.0f * relativeZoom - relativeShiftY);
+				glVertex2f(-1.0f * relativeZoom + relativeShiftX, -1.0f * relativeZoom + relativeShiftY);
 				
 				glTexCoord2d(1.0f, 0.0f);
-				glVertex2f(1.0f * relativeZoom - relativeShiftX, -1.0f * relativeZoom - relativeShiftY);
+				glVertex2f(1.0f * relativeZoom + relativeShiftX, -1.0f * relativeZoom + relativeShiftY);
 				
 				glTexCoord2d(1.0f, 1.0f);
-				glVertex2f(1.0f * relativeZoom - relativeShiftX, 1.0f * relativeZoom - relativeShiftY);
+				glVertex2f(1.0f * relativeZoom + relativeShiftX, 1.0f * relativeZoom + relativeShiftY);
 				
 				glTexCoord2d(0.0f, 1.0f);
-				glVertex2f(-1.0f * relativeZoom - relativeShiftX, 1.0f * relativeZoom - relativeShiftY);
+				glVertex2f(-1.0f * relativeZoom + relativeShiftX, 1.0f * relativeZoom + relativeShiftY);
 			}
 			glEnd();
 		}
@@ -465,7 +467,7 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 		glEnable(GL_TEXTURE_2D);
 	}
 	
-	glFlush();
+	glFinish();
 }
 
 #pragma mark - Window Events
@@ -474,78 +476,30 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 {
 	[super reshape];
 	
-	if (width == self.frame.size.width * devicePixelRatio && height == self.frame.size.height * devicePixelRatio)
-		return;
-	
+	renderID++;
 	[self teardown];
+	
 	devicePixelRatio = [self.window.screen backingScaleFactor];
 	lastChangeTime = CACurrentMediaTime();
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(),
 	^{
-		usleep(500000);
+		NSLog(@"change time delta: %f", CACurrentMediaTime() - lastChangeTime);
 		if(CACurrentMediaTime() - lastChangeTime >= 0.5)
 		{
-			dispatch_async(dispatch_get_main_queue(),
-			^{
-				[self.openGLContext makeCurrentContext];
-				[self.openGLContext update];
-				[self initCL];
-				[self initPreviewTextureWithFactor:16];
-				[self initMainTexture];
-				glMatrixMode(GL_PROJECTION);
-				glViewport(0, 0, self.bounds.size.width * devicePixelRatio, self.bounds.size.height * devicePixelRatio);
-				glOrtho(-1, 1, -1, 1, -1, 1);
-				usePreview = NO;
-				if (!_disableAutomaticUpdates)
-					[self updateCL];
-			});
+			[self.openGLContext makeCurrentContext];
+			[self.openGLContext update];
+			[self initCL];
+			[self initPreviewTextureWithFactor:16];
+			[self initMainTexture];
+			glMatrixMode(GL_PROJECTION);
+			glViewport(0, 0, self.bounds.size.width * devicePixelRatio, self.bounds.size.height * devicePixelRatio);
+			glOrtho(-1, 1, -1, 1, -1, 1);
+			usePreview = NO;
+			if (!_disableAutomaticUpdates)
+				[self updateCL];
 		}
 	});
 }
-/*
-- (void)mouseDown:(NSEvent *)theEvent
-{
-	[self.window makeFirstResponder:self];
-	mouseDown = YES;
-}
-
-- (void)mouseDragged:(NSEvent *)theEvent
-{
-	usePreview = YES;
-	shift.x -= theEvent.deltaX / self.bounds.size.height * 2.0 / zoom;
-	shift.y += theEvent.deltaY / self.bounds.size.height * 2.0 / zoom;
-	lastChangeTime = CACurrentMediaTime();
-	if(!updating)
-	{
-		[self updateCL];
-	}
-}
-
-- (void)mouseUp:(NSEvent *)theEvent
-{
-	mouseDown = NO;
-	if(!scrolling)
-		usePreview = NO;
-	[self updateCL];
-}
-*/
-
-/*
-- (void)scrollWheel:(NSEvent *)theEvent
-{
-	usePreview = YES;
-	scrolling = YES;
-	zoom += theEvent.deltaY * zoom * 0.01f;
-	lastChangeTime = CACurrentMediaTime();
-	if(theEvent.momentumPhase == NSEventPhaseEnded)
-	{
-		scrolling = NO;
-		if(!mouseDown)
-			usePreview = NO;
-	}
-	[self updateCL];
-}
-*/
 
 #pragma mark - Control methods
 
@@ -567,7 +521,7 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 - (void)setZoom:(double)newZoom
 {
 	zoom = newZoom;
-	if(!updating && _disableAutomaticUpdates)
+	if(!(updating && usePreview) && !_disableAutomaticUpdates)
 		[self updateCL];
 }
 
@@ -662,13 +616,48 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 
 - (cl_double2)shift
 {
-	NSLog(@"shift: x: %f; y: %f", shift.x, shift.y);
 	return shift;
 }
 
 - (void)setShift:(cl_double2)newShift
 {
 	shift = newShift;
+	if (!_disableAutomaticUpdates)
+		[self updateCL];
+}
+
+- (unsigned char)color_mode
+{
+	return color_mode;
+}
+
+- (void)setColor_mode:(unsigned char)newMode
+{
+	color_mode = newMode;
+	if (!_disableAutomaticUpdates)
+		[self updateCL];
+}
+
+- (unsigned char)smooth_coloring
+{
+	return smooth_coloring;
+}
+
+- (void)setSmooth_coloring:(unsigned char)newSmooth
+{
+	smooth_coloring = newSmooth;
+	if (!_disableAutomaticUpdates)
+		[self updateCL];
+}
+
+- (unsigned char)color_scale
+{
+	return color_scale;
+}
+
+- (void)setColor_scale:(unsigned char)newScale
+{
+	color_scale = newScale;
 	if (!_disableAutomaticUpdates)
 		[self updateCL];
 }

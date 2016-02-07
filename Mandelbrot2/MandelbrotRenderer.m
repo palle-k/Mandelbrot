@@ -3,13 +3,29 @@
 //  Mandelbrot2
 //
 //  Created by Palle Klewitz on 06.08.15.
-//  Copyright © 2015 Palle Klewitz. All rights reserved.
+//  Copyright © 2015 - 2016 Palle Klewitz.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is furnished
+//  to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in all
+//  copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+//  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+//  IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 @import AVFoundation;
 #import "MandelbrotRenderer.h"
 #import "CLMandelbrotView.h"
-#import "CVImageUtils.h"
 
 double AnimationValue(double start, double end, unsigned int frame, unsigned int totalFrames)
 {
@@ -39,6 +55,30 @@ double AnimationValue(double start, double end, unsigned int frame, unsigned int
 @implementation MandelbrotRenderer
 @synthesize progress = _progress;
 
++ (CVPixelBufferRef)pixelBufferFromCGImage:(CGImageRef)image
+{
+	CGSize frameSize = CGSizeMake(CGImageGetWidth(image), CGImageGetHeight(image));
+	NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithBool:YES], kCVPixelBufferCGImageCompatibilityKey, [NSNumber numberWithBool:YES], kCVPixelBufferCGBitmapContextCompatibilityKey, nil];
+	CVPixelBufferRef pxbuffer = NULL;
+	
+	CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, frameSize.width, frameSize.height, kCVPixelFormatType_32ARGB, (__bridge CFDictionaryRef)options, &pxbuffer);
+	assert(status == kCVReturnSuccess && pxbuffer != NULL);
+	
+	CVPixelBufferLockBaseAddress(pxbuffer, 0);
+	void *pxdata = CVPixelBufferGetBaseAddress(pxbuffer);
+	
+	CGColorSpaceRef rgbColorSpace = CGColorSpaceCreateDeviceRGB();
+	CGContextRef context = CGBitmapContextCreate(pxdata, frameSize.width, frameSize.height, 8, CVPixelBufferGetBytesPerRow(pxbuffer), rgbColorSpace, (CGBitmapInfo)kCGBitmapByteOrder32Little | kCGImageAlphaPremultipliedLast);
+	
+	CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image), CGImageGetHeight(image)), image);
+	CGColorSpaceRelease(rgbColorSpace);
+	CGContextRelease(context);
+	
+	CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
+	
+	return pxbuffer;
+}
+
 - (void)startRendering
 {
 	_progress = [[NSProgress alloc] init];
@@ -56,14 +96,15 @@ double AnimationValue(double start, double end, unsigned int frame, unsigned int
 		return;
 	}
 	NSDictionary *videoSettings = @{
-									AVVideoCodecKey : AVVideoCodecH264,
-									AVVideoWidthKey : @(self.mandelbrotView.textureSize.width),
-									AVVideoHeightKey : @(self.mandelbrotView.textureSize.height),
-									/*AVVideoCompressionPropertiesKey : @{
-											AVVideoAverageBitRateKey : @(64*1000*1000), // 64 000 kbits/s
+										AVVideoCodecKey : AVVideoCodecH264,
+										AVVideoWidthKey : @(self.mandelbrotView.textureSize.width),
+										AVVideoHeightKey : @(self.mandelbrotView.textureSize.height),
+										AVVideoCompressionPropertiesKey :
+										@{
+											AVVideoAverageBitRateKey : @(self.mandelbrotView.textureSize.width * self.mandelbrotView.textureSize.height * _frames_per_second * 2), // 64 000 kbits/s
 											AVVideoProfileLevelKey : AVVideoProfileLevelH264HighAutoLevel,
 											AVVideoMaxKeyFrameIntervalKey : @(1)
-											}*/
+										}
 									};
 	
 	_input = [[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeVideo outputSettings:videoSettings];
@@ -109,7 +150,7 @@ double AnimationValue(double start, double end, unsigned int frame, unsigned int
 			dispatch_sync(dispatch_get_main_queue(),
 			^{
 				NSBitmapImageRep *rep = [_mandelbrotView getShnapshot];
-				pixelBuffer = [CVImageUtils pixelBufferFromCGImage:rep.CGImage];
+				pixelBuffer = [MandelbrotRenderer pixelBufferFromCGImage:rep.CGImage];
 				
 			});
 			while (!_adaptor.assetWriterInput.readyForMoreMediaData)
@@ -135,11 +176,15 @@ double AnimationValue(double start, double end, unsigned int frame, unsigned int
 		shift.x = AnimationValue(_startX, _endX, _frame, totalFrames);
 		shift.y = AnimationValue(_startY, _endY, _frame, totalFrames);
 		
-		NSLog(@"startX=%f; endX=%f", _startX, _endX);
+		double startZoomLog = log2(_startZoom);
+		double endZoomLog = log2(_endZoom);
+		
+		double startIterationLog = log2(_startIterations);
+		double endIterationLog = log2(_endIterations);
 		
 		_mandelbrotView.shift = shift;
-		_mandelbrotView.zoom = AnimationValue(_startZoom, _endZoom, _frame, totalFrames);
-		_mandelbrotView.iterations = (unsigned int)AnimationValue(_startIterations, _endIterations, _frame, totalFrames);
+		_mandelbrotView.zoom = pow(2.0, AnimationValue(startZoomLog, endZoomLog, _frame, totalFrames));
+		_mandelbrotView.iterations = (unsigned int)pow(2.0, AnimationValue(startIterationLog, endIterationLog, _frame, totalFrames));
 		_mandelbrotView.color_shift = AnimationValue(_startColorShift, _endColorShift, _frame, totalFrames);
 		_mandelbrotView.color_factor = AnimationValue(_startColorFactor, _endColorFactor, _frame, totalFrames);
 		[_mandelbrotView updateCL];
@@ -155,7 +200,6 @@ double AnimationValue(double start, double end, unsigned int frame, unsigned int
 	[_writer finishWritingWithCompletionHandler:
 	^{
 		[_delegate didFinishRendering];
-		NSLog(@"rendering completed");
 	}];
 	dispatch_async(dispatch_get_main_queue(),
 	^{
@@ -165,52 +209,13 @@ double AnimationValue(double start, double end, unsigned int frame, unsigned int
 
 - (void)mandelbrotViewDidFinishRendering:(nonnull CLMandelbrotView *)mandelbrotView
 {
-	//NSLog(@"MandelbrotView did finish rendering");
 	dispatch_semaphore_signal(_callback_semaphore);
-}
-
-- (void) processFrame:(NSBitmapImageRep *) rep
-{
-	//NSData *bitmapData = [rep representationUsingType:NSPNGFileType properties:[[NSDictionary alloc] init]];
-	//[bitmapData writeToURL:[NSURL URLWithString:@"file:///Users/Palle/Desktop/current.png"] atomically:YES];
-	CVPixelBufferRef pixelBuffer = [self pixelBufferFromCGImage:rep.CGImage size:rep.size];
-	NSLog(@"%p", pixelBuffer);
-	[_adaptor appendPixelBuffer:pixelBuffer withPresentationTime:CMTimeMake(_frame, _frames_per_second)];
-	CVPixelBufferRelease(pixelBuffer);
 }
 
 - (void)setMandelbrotView:(CLMandelbrotView *)mandelbrotView
 {
 	_mandelbrotView = mandelbrotView;
 	_mandelbrotView.delegate = self;
-}
-
-- (CVPixelBufferRef )pixelBufferFromCGImage:(CGImageRef)image size:(CGSize)size
-{
-	CVPixelBufferRef pxbuffer = NULL;
-	CVReturn status = CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, _adaptor.pixelBufferPool, &pxbuffer);
-	
-	if (status != kCVReturnSuccess || pxbuffer == NULL)
-	{
-		NSLog(@"buffer not from pool");
-		NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], kCVPixelBufferCGImageCompatibilityKey, [NSNumber numberWithBool:YES], kCVPixelBufferCGBitmapContextCompatibilityKey, nil];
-		CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, size.width, size.height, kCVPixelFormatType_32ARGB, (__bridge CFDictionaryRef) options, &pxbuffer);
-		NSParameterAssert(status == kCVReturnSuccess && pxbuffer != NULL);
-	}
-	
-	CVPixelBufferLockBaseAddress(pxbuffer, 0);
-	void *pxdata = CVPixelBufferGetBaseAddress(pxbuffer);
-	
-	CGColorSpaceRef rgbColorSpace = CGColorSpaceCreateDeviceRGB();
-	CGContextRef context = CGBitmapContextCreate(pxdata, size.width, size.height, 8, 4*size.width, rgbColorSpace, 2);
-	CGContextConcatCTM(context, CGAffineTransformMakeRotation(0));
-	CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image), CGImageGetHeight(image)), image);
-	CGColorSpaceRelease(rgbColorSpace);
-	CGContextRelease(context);
-	
-	CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
-
-	return pxbuffer;
 }
 
 @end

@@ -3,7 +3,7 @@
    version = "1.0">
    <Group
       location = "container:"
-      name = "New Group">
+      name = "Mandelbrot2">
       <FileRef
          location = "self:Mandelbrot2.xcodeproj">
       </FileRef>

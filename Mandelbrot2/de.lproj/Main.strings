@@ -3,19 +3,19 @@
 "0dS-Ab-aoG.title" = "Farbverschiebung";
 
 /* Class = "NSMenuItem"; title = "Mandelbrot2"; ObjectID = "1Xt-HY-uBw"; */
-"1Xt-HY-uBw.title" = "Mandelbrot2";
+"1Xt-HY-uBw.title" = "Mandelbrot";
 
 /* Class = "NSMenuItem"; title = "Increase Color Factor"; ObjectID = "4dw-ex-NEu"; */
-"4dw-ex-NEu.title" = "Increase Color Factor";
+"4dw-ex-NEu.title" = "Farbfaktor erhöhen";
 
 /* Class = "NSMenuItem"; title = "Quit Mandelbrot2"; ObjectID = "4sb-4s-VLi"; */
-"4sb-4s-VLi.title" = "Quit Mandelbrot2";
+"4sb-4s-VLi.title" = "Mandelbrot beenden";
 
 /* Class = "NSTextFieldCell"; title = "Zoom"; ObjectID = "5PI-cx-g3j"; */
 "5PI-cx-g3j.title" = "Zoom";
 
 /* Class = "NSMenuItem"; title = "About Mandelbrot2"; ObjectID = "5kV-Vb-QxS"; */
-"5kV-Vb-QxS.title" = "About Mandelbrot2";
+"5kV-Vb-QxS.title" = "Über Mandelbrot";
 
 /* Class = "NSTextFieldCell"; title = "Y-Position"; ObjectID = "7KE-s3-Mkq"; */
 "7KE-s3-Mkq.title" = "Y-Position";
@@ -27,34 +27,34 @@
 "ATj-wZ-Wni.title" = "Ende";
 
 /* Class = "NSMenu"; title = "Main Menu"; ObjectID = "AYu-sK-qS6"; */
-"AYu-sK-qS6.title" = "Main Menu";
+"AYu-sK-qS6.title" = "Hauptmenü";
 
 /* Class = "NSMenuItem"; title = "Preferences…"; ObjectID = "BOF-NM-1cW"; */
-"BOF-NM-1cW.title" = "Preferences…";
+"BOF-NM-1cW.title" = "Einstellungen…";
 
 /* Class = "NSMenuItem"; title = "Decrease Iterations"; ObjectID = "BTq-1J-d1S"; */
-"BTq-1J-d1S.title" = "Decrease Iterations";
+"BTq-1J-d1S.title" = "Iterationen verringern";
 
 /* Class = "NSMenu"; title = "Help"; ObjectID = "F2S-fz-NVQ"; */
-"F2S-fz-NVQ.title" = "Help";
+"F2S-fz-NVQ.title" = "Hilfe";
 
 /* Class = "NSMenu"; title = "File"; ObjectID = "F68-U4-c0h"; */
-"F68-U4-c0h.title" = "File";
+"F68-U4-c0h.title" = "Ablage";
 
 /* Class = "NSMenuItem"; title = "Zoom Out"; ObjectID = "F9d-Y9-28C"; */
-"F9d-Y9-28C.title" = "Zoom Out";
+"F9d-Y9-28C.title" = "Herauszoomen";
 
 /* Class = "NSMenuItem"; title = "Mandelbrot2 Help"; ObjectID = "FKE-Sm-Kum"; */
-"FKE-Sm-Kum.title" = "Mandelbrot2 Help";
+"FKE-Sm-Kum.title" = "Mandelbrot-Hilfe";
 
 /* Class = "NSTextFieldCell"; title = "Farbverschiebung"; ObjectID = "FWP-nM-bcS"; */
 "FWP-nM-bcS.title" = "Farbverschiebung";
 
 /* Class = "NSMenuItem"; title = "View"; ObjectID = "H8h-7b-M4v"; */
-"H8h-7b-M4v.title" = "View";
+"H8h-7b-M4v.title" = "Ansicht";
 
 /* Class = "NSMenu"; title = "View"; ObjectID = "HyV-fh-RgO"; */
-"HyV-fh-RgO.title" = "View";
+"HyV-fh-RgO.title" = "Ansicht";
 
 /* Class = "NSWindow"; title = "Mandelbrot"; ObjectID = "IQv-IB-iLA"; */
 "IQv-IB-iLA.title" = "Mandelbrot";
@@ -63,10 +63,10 @@
 "KU5-lK-Hyc.title" = "X-Position";
 
 /* Class = "NSMenuItem"; title = "Show All"; ObjectID = "Kd2-mp-pUS"; */
-"Kd2-mp-pUS.title" = "Show All";
+"Kd2-mp-pUS.title" = "Alles zeigen";
 
 /* Class = "NSMenuItem"; title = "Bring All to Front"; ObjectID = "LE2-aR-0XJ"; */
-"LE2-aR-0XJ.title" = "Bring All to Front";
+"LE2-aR-0XJ.title" = "Alle nach vorne bringen";
 
 /* Class = "NSTextFieldCell"; title = "Farbfaktor"; ObjectID = "Llc-hT-QzN"; */
 "Llc-hT-QzN.title" = "Farbfaktor";
@@ -75,7 +75,7 @@
 "NAh-Xn-hTn.title" = "Zoom";
 
 /* Class = "NSMenuItem"; title = "Services"; ObjectID = "NMo-om-nkz"; */
-"NMo-om-nkz.title" = "Services";
+"NMo-om-nkz.title" = "Dienste";
 
 /* Class = "NSWindow"; title = "Animation erstellen"; ObjectID = "NWk-G4-Clr"; */
 "NWk-G4-Clr.title" = "Animation erstellen";
@@ -84,10 +84,10 @@
 "O76-7E-mK9.title" = "Videoeinstellungen";
 
 /* Class = "NSMenuItem"; title = "Minimize"; ObjectID = "OY7-WF-poV"; */
-"OY7-WF-poV.title" = "Minimize";
+"OY7-WF-poV.title" = "Minimieren";
 
 /* Class = "NSMenuItem"; title = "Hide Mandelbrot2"; ObjectID = "Olw-nP-bQN"; */
-"Olw-nP-bQN.title" = "Hide Mandelbrot2";
+"Olw-nP-bQN.title" = "Mandelbrot ausblenden";
 
 /* Class = "NSButtonCell"; title = "Animation Rendern"; ObjectID = "Qzq-m7-VJa"; */
 "Qzq-m7-VJa.title" = "Animation Rendern";
@@ -99,37 +99,62 @@
 "SPE-1C-b2g.title" = "Y-Position";
 
 /* Class = "NSMenu"; title = "Window"; ObjectID = "Td7-aD-5lo"; */
-"Td7-aD-5lo.title" = "Window";
+"Td7-aD-5lo.title" = "Fenster";
 
 /* Class = "NSMenuItem"; title = "Hide Others"; ObjectID = "Vdr-fp-XzO"; */
-"Vdr-fp-XzO.title" = "Hide Others";
+"Vdr-fp-XzO.title" = "Andere ausblenden";
 
 /* Class = "NSMenuItem"; title = "Shift Colors Forwards"; ObjectID = "ZvT-ld-bct"; */
-"ZvT-ld-bct.title" = "Shift Colors Forwards";
+"ZvT-ld-bct.title" = "Farbe vorwärts verschieben";
+
+//
+//  Main.strings (German)
+//  Mandelbrot2
+//
+//  Created by Palle Klewitz on 07.08.15.
+//  Copyright © 2015 - 2016 Palle Klewitz.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is furnished
+//  to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in all
+//  copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+//  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+//  IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
 
 /* Class = "NSMenuItem"; title = "Shift Colors Backwards"; ObjectID = "a9W-SA-MV6"; */
-"a9W-SA-MV6.title" = "Shift Colors Backwards";
+"a9W-SA-MV6.title" = "Farbe rückwärts verschieben";
 
 /* Class = "NSMenuItem"; title = "Window"; ObjectID = "aUF-d1-5bR"; */
-"aUF-d1-5bR.title" = "Window";
+"aUF-d1-5bR.title" = "Fenster";
 
 /* Class = "NSMenuItem"; title = "Zoom In"; ObjectID = "aVY-Pv-3Yb"; */
-"aVY-Pv-3Yb.title" = "Zoom In";
+"aVY-Pv-3Yb.title" = "Hereinzoomen";
 
 /* Class = "NSMenuItem"; title = "Decrease Color Factor"; ObjectID = "amn-YT-Xxh"; */
-"amn-YT-Xxh.title" = "Decrease Color Factor";
+"amn-YT-Xxh.title" = "Farbfaktor verringern";
 
 /* Class = "NSMenuItem"; title = "Enter Full Screen"; ObjectID = "bOt-H1-584"; */
-"bOt-H1-584.title" = "Enter Full Screen";
+"bOt-H1-584.title" = "Vollbild";
 
 /* Class = "NSMenuItem"; title = "Create Animation"; ObjectID = "dZW-XO-ysw"; */
-"dZW-XO-ysw.title" = "Create Animation";
+"dZW-XO-ysw.title" = "Animation erstellen"";
 
 /* Class = "NSTextFieldCell"; title = "X-Position"; ObjectID = "dcW-W8-ion"; */
 "dcW-W8-ion.title" = "X-Position";
 
 /* Class = "NSMenuItem"; title = "Close"; ObjectID = "hl1-W0-lGK"; */
-"hl1-W0-lGK.title" = "Close";
+"hl1-W0-lGK.title" = "Schliessen";
 
 /* Class = "NSMenu"; title = "Services"; ObjectID = "hz9-B4-Xy5"; */
 "hz9-B4-Xy5.title" = "Services";
@@ -141,7 +166,7 @@
 "jFl-Ga-kaX.title" = "Länge";
 
 /* Class = "NSMenuItem"; title = "File"; ObjectID = "m3n-Sr-ZO3"; */
-"m3n-Sr-ZO3.title" = "File";
+"m3n-Sr-ZO3.title" = "Ablage";
 
 /* Class = "NSTextFieldCell"; title = "Start"; ObjectID = "mAe-24-hED"; */
 "mAe-24-hED.title" = "Start";
@@ -150,22 +175,22 @@
 "mW6-1w-uq2.title" = "Bilder pro Sekunde";
 
 /* Class = "NSMenuItem"; title = "Save Snapshot"; ObjectID = "obQ-j2-bS0"; */
-"obQ-j2-bS0.title" = "Save Snapshot";
+"obQ-j2-bS0.title" = "Foto erstellen";
 
 /* Class = "NSMenuItem"; title = "Original Size"; ObjectID = "oyW-hX-lN4"; */
-"oyW-hX-lN4.title" = "Original Size";
+"oyW-hX-lN4.title" = "Originalgröße";
 
 /* Class = "NSMenuItem"; title = "Increase Iterations"; ObjectID = "pC0-mM-Pce"; */
-"pC0-mM-Pce.title" = "Increase Iterations";
+"pC0-mM-Pce.title" = "Iterationen erhöhen";
 
 /* Class = "NSTextFieldCell"; title = "Iterationen"; ObjectID = "syy-QP-UrN"; */
 "syy-QP-UrN.title" = "Iterationen";
 
 /* Class = "NSMenu"; title = "Mandelbrot2"; ObjectID = "uQy-DD-JDr"; */
-"uQy-DD-JDr.title" = "Mandelbrot2";
+"uQy-DD-JDr.title" = "Mandelbrot";
 
 /* Class = "NSMenuItem"; title = "Help"; ObjectID = "wpr-3q-Mcd"; */
-"wpr-3q-Mcd.title" = "Help";
+"wpr-3q-Mcd.title" = "Hilfe";
 
 /* Class = "NSTextFieldCell"; title = "Iterationen"; ObjectID = "yg8-04-CRS"; */
 "yg8-04-CRS.title" = "Iterationen";

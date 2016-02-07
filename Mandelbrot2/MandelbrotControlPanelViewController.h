@@ -1,8 +1,8 @@
 //
-//  AnimationSetupViewController.h
+//  MandelbrotControlPanelViewController.h
 //  Mandelbrot2
 //
-//  Created by Palle Klewitz on 07.08.15.
+//  Created by Palle Klewitz on 11.08.15.
 //  Copyright © 2015 - 2016 Palle Klewitz.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,29 +24,20 @@
 //
 
 @import Cocoa;
-#import "MandelbrotRenderer.h"
+#import "CLMandelbrotView.h"
 
-@interface AnimationSetupViewController : NSViewController <MandelbrotRendererDelegate>
+@interface MandelbrotControlPanelViewController : NSViewController <CLMandelbrotViewControlDelegate>
 
-@property (weak) IBOutlet NSTextField *txtStartPositionX;
-@property (weak) IBOutlet NSTextField *txtStartPositionY;
-@property (weak) IBOutlet NSTextField *txtStartZoom;
-@property (weak) IBOutlet NSTextField *txtStartIterations;
-@property (weak) IBOutlet NSTextField *txtStartColorFactor;
-@property (weak) IBOutlet NSTextField *txtStartColorShift;
-
-@property (weak) IBOutlet NSTextField *txtEndPositionX;
-@property (weak) IBOutlet NSTextField *txtEndPositionY;
-@property (weak) IBOutlet NSTextField *txtEndZoom;
-@property (weak) IBOutlet NSTextField *txtEndIterations;
-@property (weak) IBOutlet NSTextField *txtEndColorFactor;
-@property (weak) IBOutlet NSTextField *txtEndColorShift;
-
-@property (weak) IBOutlet NSTextField *txtVideoFramesPerSecond;
-@property (weak) IBOutlet NSTextField *txtVideoLength;
-
+@property (weak) IBOutlet NSTextField *txtPositionX;
+@property (weak) IBOutlet NSTextField *txtPositionY;
+@property (weak) IBOutlet NSTextField *txtZoom;
+@property (weak) IBOutlet NSTextField *txtIterations;
+@property (weak) IBOutlet NSTextField *txtColorFactor;
+@property (weak) IBOutlet NSTextField *txtColorShift;
 @property (weak) IBOutlet NSProgressIndicator *piRenderProgress;
 
-- (IBAction)renderButtonClicked:(id)sender;
+
+- (IBAction)fastRenderingToggled:(NSButton *)sender;
+- (IBAction)applySettings:(id)sender;
 
 @end
