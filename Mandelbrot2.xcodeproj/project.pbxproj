@@ -38,7 +38,7 @@
 		E6CE1F0D1B742DEB004B5DCC /* AnimationSetupViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AnimationSetupViewController.m; sourceTree = "<group>"; };
 		E6F918131B72FA8200EE5029 /* MandelbrotRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MandelbrotRenderer.h; sourceTree = "<group>"; };
 		E6F918141B72FA8200EE5029 /* MandelbrotRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MandelbrotRenderer.m; sourceTree = "<group>"; };
-		E6FAF67A199EED9A009792F6 /* Mandelbrot2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mandelbrot2.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E6FAF67A199EED9A009792F6 /* Mandelbrot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mandelbrot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E6FAF67E199EED9A009792F6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E6FAF67F199EED9A009792F6 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		E6FAF681199EED9A009792F6 /* MandelbrotRenderViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MandelbrotRenderViewController.h; sourceTree = "<group>"; };
@@ -87,7 +87,7 @@
 		E6FAF67B199EED9A009792F6 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E6FAF67A199EED9A009792F6 /* Mandelbrot2.app */,
+				E6FAF67A199EED9A009792F6 /* Mandelbrot.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -157,7 +157,7 @@
 			);
 			name = Mandelbrot;
 			productName = Mandelbrot2;
-			productReference = E6FAF67A199EED9A009792F6 /* Mandelbrot2.app */;
+			productReference = E6FAF67A199EED9A009792F6 /* Mandelbrot.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
