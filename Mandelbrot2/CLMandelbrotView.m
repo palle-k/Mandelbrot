@@ -152,6 +152,11 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	cl_queue = gcl_create_dispatch_queue(CL_DEVICE_TYPE_GPU, 0);
 	cl_block = dispatch_semaphore_create(0);
 	
+	char name[128];
+	cl_device_id gpu = gcl_get_device_id_with_dispatch_queue(cl_queue);
+	clGetDeviceInfo(gpu, CL_DEVICE_NAME, 128, name, NULL);
+	fprintf(stdout, "Created a dispatch queue using the %s\n", name);
+	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_2D);
@@ -483,7 +488,7 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	lastChangeTime = CACurrentMediaTime();
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(),
 	^{
-		NSLog(@"change time delta: %f", CACurrentMediaTime() - lastChangeTime);
+		//NSLog(@"change time delta: %f", CACurrentMediaTime() - lastChangeTime);
 		if(CACurrentMediaTime() - lastChangeTime >= 0.5)
 		{
 			[self.openGLContext makeCurrentContext];
