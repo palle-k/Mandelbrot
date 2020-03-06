@@ -433,12 +433,7 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	// glGenerateMipmap(GL_TEXTURE_2D);
     // glBindTexture(GL_TEXTURE_2D, previewTexture);
     
-    float texture_scale = 1.0f;
-	
-    if ([[CLMandelbrotView machineModel] isEqualToString:@"MacBookPro16,1"]) {
-        // some device specific hacky hack stuff
-        texture_scale = 1.0f / 2.0f;
-    }
+    float texture_scale = 1.0f / 2.0f;
     
 	if (usePreview && !mainTextureInvalid)
 	{
