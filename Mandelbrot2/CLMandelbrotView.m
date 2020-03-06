@@ -25,6 +25,8 @@
 
 #import "CLMandelbrotView.h"
 #import "kernels.cl.h"
+#include <sys/types.h>
+#include <sys/sysctl.h>
 
 @implementation CLMandelbrotView
 
@@ -97,7 +99,7 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	self = [super initWithCoder:coder];
 	if (self)
 	{
-		
+        cl_block = NULL;
 	}
 	return self;
 }
@@ -107,7 +109,7 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	self = [super initWithFrame:frameRect];
 	if (self)
 	{
-		
+		cl_block = NULL;
 	}
 	return self;
 }
@@ -117,7 +119,7 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	[self initParameters];
 	[self initCL];
 	[self initMainTexture];
-	[self initPreviewTextureWithFactor:16];
+	[self initPreviewTextureWithFactor:8];
 	if (!_disableAutomaticUpdates)
 		[self updateCL];
 }
@@ -149,8 +151,18 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	[self.openGLContext makeCurrentContext];
 	gcl_gl_set_sharegroup(CGLGetShareGroup(CGLGetCurrentContext()));
 	
-	cl_queue = gcl_create_dispatch_queue(CL_DEVICE_TYPE_GPU, 0);
-	cl_block = dispatch_semaphore_create(0);
+    cl_uint num = 0;
+    clGetDeviceIDs(NULL,CL_DEVICE_TYPE_GPU, 0, NULL, &num);
+    
+    NSLog(@"Devices: %u", num);
+     
+    cl_device_id devices[num];
+    clGetDeviceIDs(NULL,CL_DEVICE_TYPE_GPU, num, devices, NULL);
+    
+	cl_queue = gcl_create_dispatch_queue(CL_DEVICE_TYPE_USE_ID, devices[num - 1]);
+    if (cl_block == NULL) {
+        cl_block = dispatch_semaphore_create(0);
+    }
 	
 	char name[128];
 	cl_device_id gpu = gcl_get_device_id_with_dispatch_queue(cl_queue);
@@ -173,12 +185,13 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 {
 	glGenTextures(1, &mainTexture);
 	glBindTexture(GL_TEXTURE_2D, mainTexture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
-	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, width * 2, height * 2, 0, GL_RGBA, GL_UNSIGNED_INT, NULL);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	// glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	mainImage = gcl_gl_create_image_from_texture(GL_TEXTURE_2D, 0, mainTexture);
 	mainTextureAvailable = YES;
 	
@@ -193,7 +206,7 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	glBindTexture(GL_TEXTURE_2D, previewTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, 4, previewWidth, previewHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, previewWidth, previewHeight, 0, GL_RGBA, GL_UNSIGNED_INT, NULL);
 	previewImage = gcl_gl_create_image_from_texture(GL_TEXTURE_2D, 0, previewTexture);
 	previewTextureAvailable = YES;
 }
@@ -259,43 +272,41 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 		
 		if (!usePreview)
 		{
-			int baseTiles = 5;
+			int baseTiles = 2;
 			if(iterations >= 4194304)
-				baseTiles = 240;
+				baseTiles = 128;
 			else if(iterations >= 1048576)
-				baseTiles = 150;
+				baseTiles = 96;
 			else if(iterations >= 524288)
-				baseTiles = 120;
+				baseTiles = 64;
 			else if(iterations >= 131072)
-				baseTiles = 90;
+				baseTiles = 48;
 			else if(iterations >= 32768)
-				baseTiles = 60;
+				baseTiles = 32;
 			else if(iterations >= 8192)
-				baseTiles = 30;
+				baseTiles = 16;
 			else if (iterations >= 4096)
-				baseTiles = 20;
+				baseTiles = 8;
 			else if (iterations >= 256)
-				baseTiles = 10;
+				baseTiles = 4;
 			
 			if (_optimizeSpeed)
 			{
-				baseTiles = 3;
+				baseTiles = 2;
 				if(iterations >= 4194304)
-					baseTiles = 150;
+					baseTiles = 64;
 				else if(iterations >= 1048576)
-					baseTiles = 90;
+					baseTiles = 32;
 				else if(iterations >= 524288)
-					baseTiles = 60;
+					baseTiles = 24;
 				else if(iterations >= 131072)
-					baseTiles = 30;
+					baseTiles = 16;
 				else if(iterations >= 32768)
-					baseTiles = 20;
+					baseTiles = 12;
 				else if(iterations >= 8192)
-					baseTiles = 15;
+					baseTiles = 8;
 				else if (iterations >= 4096)
-					baseTiles = 10;
-				else if (iterations >= 256)
-					baseTiles = 5;
+					baseTiles = 4;
 			}
 			
 			int tilesX = (int)((double) baseTiles * width / height);
@@ -318,18 +329,16 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 					{0, 0}
 				};
 				reset_kernel(&range, mainImage);
-				//dispatch_semaphore_signal(cl_block);
 			});
-			//dispatch_semaphore_wait(cl_block, DISPATCH_TIME_FOREVER);
 			
 			mainTextureInvalid = NO;
 			renderID++;
 			int currentRenderID = renderID;
-			for (short i = tilesY - 1; i >= 0; i--)
+			for (int i = tilesY - 1; i >= 0; i--)
 			{
 				if(usePreview || renderID != currentRenderID)
 					break;
-				for (unsigned short j = 0; j < tilesX; j++)
+				for (int j = 0; j < tilesX; j++)
 				{
 					if(usePreview || renderID != currentRenderID)
 						break;
@@ -338,19 +347,15 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 					
 					dispatch_sync(cl_queue,
 					^{
-						size_t wgs;
-						gcl_get_kernel_block_workgroup_info((__bridge void *)(mandelbrot_kernel), CL_KERNEL_WORK_GROUP_SIZE, sizeof(wgs), &wgs, NULL);
 						cl_ndrange range =
 						{
 							2,
 							{width / tilesX * tilePosition.x, height / tilesY * tilePosition.y},
-							{width / tilesX, height / tilesY},
-							{0, 0}
+							{(width / tilesX), (height / tilesY)},
+                            {0, 0}
 						};
 						mandelbrot_kernel(&range, mainImage, sizeX, sizeY, width, height, shift.x, shift.y, iterations, color_factor, color_shift, color_mode, smooth_coloring, color_scale);
-						//dispatch_semaphore_signal(cl_block);
 					});
-					//dispatch_semaphore_wait(cl_block, DISPATCH_TIME_FOREVER);
 					
 					dispatch_sync(dispatch_get_main_queue(),
 					^{
@@ -378,14 +383,31 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	});
 }
 
++ (NSString *)machineModel
+{
+    size_t len = 0;
+    sysctlbyname("hw.model", NULL, &len, NULL, 0);
+    if (len) {
+        char *model = malloc(len * sizeof(char));
+        sysctlbyname("hw.model", model, &len, NULL, 0);
+        NSString *model_ns = [NSString stringWithUTF8String:model];
+        free(model);
+        return model_ns;
+    }
+
+    return @"unknown";
+}
+
 - (void)drawRect:(NSRect)dirtyRect
 {
 	[self.openGLContext makeCurrentContext];
+
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
 	if(!initialized)
 		return;
 	glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 	
 	if (updating || usePreview)
 	{
@@ -408,8 +430,16 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	}
 	
 	glBindTexture(GL_TEXTURE_2D, mainTexture);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	// glGenerateMipmap(GL_TEXTURE_2D);
+    // glBindTexture(GL_TEXTURE_2D, previewTexture);
+    
+    float texture_scale = 1.0f;
 	
+    if ([[CLMandelbrotView machineModel] isEqualToString:@"MacBookPro16,1"]) {
+        // some device specific hacky hack stuff
+        texture_scale = 1.0f / 2.0f;
+    }
+    
 	if (usePreview && !mainTextureInvalid)
 	{
 		double relativeZoom = zoom / previewZoom;
@@ -421,16 +451,16 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 			
 			glBegin(GL_QUADS);
 			{
-				glTexCoord2d(0.0f, 0.0f);
+                glTexCoord2d(0, 0);
 				glVertex2f(-1.0f * relativeZoom + relativeShiftX, -1.0f * relativeZoom + relativeShiftY);
 				
-				glTexCoord2d(1.0f, 0.0f);
+                glTexCoord2d(texture_scale, 0);
 				glVertex2f(1.0f * relativeZoom + relativeShiftX, -1.0f * relativeZoom + relativeShiftY);
 				
-				glTexCoord2d(1.0f, 1.0f);
+                glTexCoord2d(texture_scale, texture_scale);
 				glVertex2f(1.0f * relativeZoom + relativeShiftX, 1.0f * relativeZoom + relativeShiftY);
 				
-				glTexCoord2d(0.0f, 1.0f);
+                glTexCoord2d(0, texture_scale);
 				glVertex2f(-1.0f * relativeZoom + relativeShiftX, 1.0f * relativeZoom + relativeShiftY);
 			}
 			glEnd();
@@ -440,17 +470,17 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	{
 		glBegin(GL_QUADS);
 		{
-			glTexCoord2d(0.0f, 0.0f);
-			glVertex2f(-1.0f, -1.0f);
+			glTexCoord2d(0, 0);
+			glVertex2f(-1, -1);
 			
-			glTexCoord2d(1.0f, 0.0f);
-			glVertex2f(1.0f, -1.0f);
+			glTexCoord2d(texture_scale, 0);
+			glVertex2f(1, -1);
 			
-			glTexCoord2d(1.0f, 1.0f);
-			glVertex2f(1.0f, 1.0f);
-			
-			glTexCoord2d(0.0f, 1.0f);
-			glVertex2f(-1.0f, 1.0f);
+			glTexCoord2d(texture_scale, texture_scale);
+			glVertex2f(1, 1);
+            
+			glTexCoord2d(0, texture_scale);
+			glVertex2f(-1, 1);
 		}
 		glEnd();
 	}
@@ -494,7 +524,7 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 			[self.openGLContext makeCurrentContext];
 			[self.openGLContext update];
 			[self initCL];
-			[self initPreviewTextureWithFactor:16];
+			[self initPreviewTextureWithFactor:8];
 			[self initMainTexture];
 			glMatrixMode(GL_PROJECTION);
 			glViewport(0, 0, self.bounds.size.width * devicePixelRatio, self.bounds.size.height * devicePixelRatio);
@@ -549,12 +579,12 @@ cl_int2 NthTilePositionFromCenter(unsigned int n, int tilesX, int tilesY)
 	if(iterations >= 8192 && width / previewWidth <= 16 * devicePixelRatio)
 	{
 		glDeleteTextures(1, &previewTexture);
-		[self initPreviewTextureWithFactor:24];
+		[self initPreviewTextureWithFactor:16];
 	}
 	else if (iterations < 8192 && width / previewWidth > 16 * devicePixelRatio)
 	{
 		glDeleteTextures(1, &previewTexture);
-		[self initPreviewTextureWithFactor:16];
+		[self initPreviewTextureWithFactor:8];
 	}
 	mainTextureInvalid = YES;
 	if (!_disableAutomaticUpdates)

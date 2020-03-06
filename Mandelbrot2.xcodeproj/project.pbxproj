@@ -179,8 +179,10 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
+				de,
 			);
 			mainGroup = E6FAF671199EED9A009792F6;
 			productRefGroup = E6FAF67B199EED9A009792F6 /* Products */;
@@ -339,6 +341,10 @@
 				INFOPLIST_FILE = Mandelbrot2/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				OPENCL_COMPILER_VERSION = CL1.2;
+				OPENCL_FAST_RELAXED_MATH = YES;
+				OPENCL_MAD_ENABLE = YES;
+				OPENCL_OPTIMIZATION_LEVEL = 3;
 				PRODUCT_BUNDLE_IDENTIFIER = "PK.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -352,6 +358,10 @@
 				INFOPLIST_FILE = Mandelbrot2/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				OPENCL_COMPILER_VERSION = CL1.2;
+				OPENCL_FAST_RELAXED_MATH = YES;
+				OPENCL_MAD_ENABLE = YES;
+				OPENCL_OPTIMIZATION_LEVEL = 3;
 				PRODUCT_BUNDLE_IDENTIFIER = "PK.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

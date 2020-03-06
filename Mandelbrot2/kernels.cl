@@ -24,58 +24,59 @@
 //
 
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
+typedef double real_t;
 
 typedef struct
 {
-	double real;
-	double imag;
-} cplx_double;
+	real_t real;
+	real_t imag;
+} cplx_t;
 
-inline cplx_double cplx_square(cplx_double value)
+inline cplx_t cplx_square(cplx_t value)
 {
-	cplx_double result;
+	cplx_t result;
 	result.real = value.real * value.real - value.imag * value.imag;
 	result.imag = 2.0 * value.real * value.imag;
 	return result;
 }
 
-inline cplx_double cplx_add(cplx_double v1, cplx_double v2)
+inline cplx_t cplx_add(cplx_t v1, cplx_t v2)
 {
 	v1.real += v2.real;
 	v1.imag += v2.imag;
 	return v1;
 }
 
-inline cplx_double cplx_sub(cplx_double v1, cplx_double v2)
+inline cplx_t cplx_sub(cplx_t v1, cplx_t v2)
 {
 	v1.real -= v2.real;
 	v1.imag -= v2.imag;
 	return v2;
 }
 
-inline cplx_double cplx_mul(cplx_double v1, cplx_double v2)
+inline cplx_t cplx_mul(cplx_t v1, cplx_t v2)
 {
-	cplx_double result;
+	cplx_t result;
 	result.real = v1.real * v2.real - v1.imag * v2.imag;
 	result.imag = v1.real * v2.imag + v1.imag * v2.real;
 	return result;
 }
 
-inline cplx_double cplx_div(cplx_double v1, cplx_double v2)
+inline cplx_t cplx_div(cplx_t v1, cplx_t v2)
 {
-	cplx_double result;
-	double divisor = v2.real * v2.real + v2.imag * v2.imag;
+	cplx_t result;
+	real_t divisor = v2.real * v2.real + v2.imag * v2.imag;
 	result.real = (v1.real * v2.real + v1.imag * v2.imag) / divisor;
 	result.imag = (v1.imag * v2.real - v1.real * v2.imag) / divisor;
 	return result;
 }
 
-inline double cplx_abs_squared(cplx_double value)
+inline real_t cplx_abs_squared(cplx_t value)
 {
 	return value.real * value.real + value.imag * value.imag;
 }
 
-inline float4 get_color(uint iteration, uint iterations, float factor, float shift, cplx_double z, unsigned char color_scaling, unsigned char smooth_colors)
+inline float4 get_color(uint iteration, uint iterations, float factor, float shift, cplx_t z, unsigned char color_scaling, unsigned char smooth_colors)
 {
 	float alpha;
 	if (smooth_colors)
@@ -99,23 +100,28 @@ inline float4 get_color(uint iteration, uint iterations, float factor, float shi
 	return (float4)(red, green, blue, 1);
 }
 
+inline uint4 color_convert(float4 color) {
+    return (uint4) (color);
+}
 
-kernel void mandelbrot(__write_only image2d_t output, const double sizeX, const double sizeY, const int image_width, const int image_height, const double shiftX, const double shiftY, const uint iterations, const float colorFactor, const float colorShift, unsigned char color_mode, unsigned char smooth_colors, unsigned char color_scaling)
+kernel void mandelbrot(__write_only image2d_t output, const real_t sizeX, const real_t sizeY, const int image_width, const int image_height, const real_t shiftX, const real_t shiftY, const uint iterations, const float colorFactor, const float colorShift, unsigned char color_mode, unsigned char smooth_colors, unsigned char color_scaling)
 {
 	int2 pixel = (int2)(get_global_id(0), get_global_id(1));
 	int2 size = (int2)(image_width, image_height);
-	cplx_double position = {(double)pixel.x * sizeX / (double) size.x + shiftX - sizeX * 0.5, (double)pixel.y * sizeY / (double)size.y + shiftY - sizeY * 0.5};
-	cplx_double z = position;
+	cplx_t position = {
+        (real_t) pixel.x * sizeX / (real_t) size.x + shiftX - sizeX * 0.5,
+        (real_t) pixel.y * sizeY / (real_t) size.y + shiftY - sizeY * 0.5
+    };
+	cplx_t z = position;
 	
 	float4 color = (float4)(0,0,0,2);
-	for (uint i = 0; i < iterations; i++)
+	for (int i = 0; i < iterations; i++)
 	{
 		z = cplx_add(cplx_square(z), position);
 		if (cplx_abs_squared(z) > 4.0)
 		{
-			if (color_mode != 1)
-				color = get_color(i, iterations, colorFactor, colorShift, z, color_scaling, smooth_colors);
-			i = iterations;
+			color = get_color(i, iterations, colorFactor, colorShift, z, color_scaling, smooth_colors) * (color_mode != 1);
+            break;
 		}
 	}
 	if (color_mode != 0)
@@ -134,13 +140,12 @@ kernel void mandelbrot(__write_only image2d_t output, const double sizeX, const 
 	}
 	else
 		color.w = 1.0f;
-	write_imagef(output, pixel, color);
+	write_imageui(output, pixel, color_convert(color));
 }
 
 kernel void reset(__write_only image2d_t texture)
 {
-    float4 clear = (float4)(0);
+    float4 clear = (float4)(0,0,0,0);
     int2 pixel = (int2)(get_global_id(0), get_global_id(1));
-    write_imagef(texture, pixel, clear);
-    
+    write_imageui(texture, pixel, color_convert(clear));
 }
